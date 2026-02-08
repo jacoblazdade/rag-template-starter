@@ -15,8 +15,12 @@ const envSchema = z.object({
   AZURE_SEARCH_INDEX_NAME: z.string().min(1),
   
   // Azure Blob Storage
-  AZURE_STORAGE_CONNECTION_STRING: z.string().min(1),
-  AZURE_STORAGE_CONTAINER_NAME: z.string().min(1),
+  AZURE_STORAGE_CONNECTION_STRING: z.string().min(1).optional(),
+  AZURE_STORAGE_CONTAINER_NAME: z.string().min(1).default('documents'),
+  
+  // Azure Document Intelligence (OCR)
+  AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: z.string().url().optional(),
+  AZURE_DOCUMENT_INTELLIGENCE_KEY: z.string().optional(),
   
   // Redis (for BullMQ)
   REDIS_URL: z.string().url().default('redis://localhost:6379'),

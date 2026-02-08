@@ -3,6 +3,7 @@ import express from 'express';
 import { errorHandler } from './middleware/errorHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { healthRouter } from './routes/health.js';
+import { documentsRouter } from './routes/documents.js';
 import { env } from './config/env.js';
 
 const app = express();
@@ -13,6 +14,7 @@ app.use(requestLogger);
 
 // Routes
 app.use('/api/v1/health', healthRouter);
+app.use('/api/v1/documents', documentsRouter);
 
 // Error handling
 app.use(errorHandler);
