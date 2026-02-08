@@ -1,40 +1,42 @@
 # RAG Template Starter - Implementation Tasks
 
-## Phase 1: Foundation & Setup (Week 1)
+## Phase 1: Foundation & Setup (Week 1) ✅
 
-### Day 1-2: Project Bootstrap
-- [ ] Initialize TypeScript project with strict mode
-- [ ] Setup ESLint + Prettier configuration
-- [ ] Configure Vitest for testing
-- [ ] Setup GitHub Actions CI pipeline
+### Day 1-2: Project Bootstrap ✅
+- [x] Initialize TypeScript project with strict mode (using pnpm)
+- [x] Setup ESLint + Prettier configuration
+- [x] Configure Vitest for testing
+- [x] Setup GitHub Actions CI pipeline
 - [ ] Create development environment (Docker Compose)
 
-### Day 3-4: Azure Infrastructure
-- [ ] Create Azure resource group
+### Day 3-4: Azure Infrastructure 🚧
+- [x] Terraform configuration created (main.tf)
+- [ ] Create Azure resource group (Terraform apply pending)
 - [ ] Deploy Azure OpenAI service (Sweden Central)
 - [ ] Deploy Azure AI Search service
 - [ ] Deploy Azure Blob Storage account
 - [ ] Setup Azure Container Registry
 - [ ] Configure Azure AD app registration
 
-### Day 5-7: Core API Skeleton
-- [ ] Setup Express.js with TypeScript
-- [ ] Implement middleware pipeline (logging, error handling)
-- [ ] Create health check endpoint
+### Day 5-7: Core API Skeleton ✅
+- [x] Setup Express.js with TypeScript
+- [x] Implement middleware pipeline (logging, error handling)
+- [x] Create health check endpoint
 - [ ] Setup OpenAPI/Swagger documentation
-- [ ] Configure environment variables (.env schema)
+- [x] Configure environment variables (.env schema with Zod)
 
-## Phase 2: Document Ingestion (Week 2)
+## Phase 2: Document Ingestion (Week 2) 🚧
 
 ### Week 2: Document Pipeline
-- [ ] Implement PDF parser (pdf-parse or pdfjs)
+- [x] Implement PDF parser (pdf-parse with Azure OCR fallback)
+- [x] Research PDF OCR models (Azure Document Intelligence recommended)
 - [ ] Implement DOCX parser (mammoth)
-- [ ] Implement TXT/MD parser
-- [ ] Create document upload endpoint (multipart)
-- [ ] Setup Azure Blob Storage integration
-- [ ] Implement chunking service (semantic + fixed)
-- [ ] Create chunk overlap logic
-- [ ] Build document status tracking
+- [x] Implement TXT/MD parser (basic support)
+- [x] Create document upload endpoint (multipart with multer)
+- [x] Setup Azure Blob Storage integration
+- [x] Implement chunking service (semantic + fixed)
+- [x] Create chunk overlap logic
+- [ ] Build document status tracking (skeleton created)
 - [ ] Add async job queue (BullMQ + Redis)
 
 ## Phase 3: Vector Search (Week 3)
