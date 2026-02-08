@@ -59,10 +59,18 @@ src/
 
 ## API Endpoints
 
+### Health
 - `GET /api/v1/health` - Health check
-- `POST /api/v1/documents` - Upload document (coming soon)
-- `GET /api/v1/documents/:id/status` - Check document status (coming soon)
-- `POST /api/v1/query` - Query with streaming (coming soon)
+
+### Documents
+- `POST /api/v1/documents` - Upload document (PDF, TXT, MD)
+- `GET /api/v1/documents/:id/status` - Check document processing status
+- `GET /api/v1/documents` - List all documents
+- `DELETE /api/v1/documents/:id` - Delete document
+
+### Query (RAG)
+- `POST /api/v1/query` - Query documents (synchronous)
+- `POST /api/v1/query/stream` - Query documents (streaming SSE)
 
 ## License
 
