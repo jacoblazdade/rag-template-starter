@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG Template Starter - GDPR-Compliant AI Document Chat</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    header {
+      padding: 60px 0;
+      text-align: center;
+      color: white;
+    }
+    
+    header h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    header p {
+      font-size: 1.25rem;
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto 40px;
+    }
+    
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      margin: 0 5px 10px;
+      backdrop-filter: blur(10px);
+    }
+    
+    main {
+      background: white;
+      border-radius: 20px 20px 0 0;
+      padding: 60px 0;
+    }
+    
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+      margin: 60px 0;
+    }
+    
+    .feature {
+      text-align: center;
+      padding: 30px;
+      border-radius: 12px;
+      background: #f8f9fa;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .feature:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+    
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+    
+    .feature h3 {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      color: #667eea;
+    }
+    
+    .pricing {
+      margin: 80px 0;
+    }
+    
+    .pricing h2 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 60px;
+    }
+    
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+    }
+    
+    .pricing-card {
+      border: 2px solid #e9ecef;
+      border-radius: 16px;
+      padding: 40px 30px;
+      text-align: center;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    
+    .pricing-card.featured {
+      border-color: #667eea;
+      box-shadow: 0 10px 40px rgba(102, 126, 234, 0.15);
+      position: relative;
+    }
+    
+    .pricing-card.featured::before {
+      content: 'POPULAR';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #667eea;
+      color: white;
+      padding: 4px 16px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    
+    .pricing-card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+    
+    .price {
+      font-size: 3rem;
+      font-weight: 700;
+      color: #667eea;
+      margin: 20px 0;
+    }
+    
+    .price span {
+      font-size: 1rem;
+      color: #6c757d;
+    }
+    
+    .pricing-card ul {
+      list-style: none;
+      margin: 30px 0;
+      text-align: left;
+    }
+    
+    .pricing-card li {
+      padding: 10px 0;
+      border-bottom: 1px solid #e9ecef;
+    }
+    
+    .pricing-card li::before {
+      content: '✓';
+      color: #28a745;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    
+    .cta {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 80px 0;
+      text-align: center;
+    }
+    
+    .cta h2 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+    
+    .cta p {
+      font-size: 1.25rem;
+      opacity: 0.9;
+      margin-bottom: 40px;
+    }
+    
+    .signup-form {
+      max-width: 500px;
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .signup-form input {
+      flex: 1;
+      min-width: 250px;
+      padding: 16px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    
+    .signup-form button {
+      padding: 16px 32px;
+      background: #ffd700;
+      color: #333;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+    
+    .signup-form button:hover {
+      background: #ffc700;
+      transform: scale(1.05);
+    }
+    
+    footer {
+      background: #1a1a2e;
+      color: white;
+      padding: 40px 0;
+      text-align: center;
+    }
+    
+    .tech-stack {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+    
+    .tech-stack span {
+      opacity: 0.7;
+    }
+    
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 2.5rem;
+      }
+      
+      .pricing-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>🚀 RAG Template Starter</h1>
+      <p>Production-ready, GDPR-compliant RAG system for EU developers. Build AI document chatbots with Azure OpenAI, TypeScript, and enterprise-grade security.</p>
+      <div>
+        <span class="badge">🇪🇺 GDPR Compliant</span>
+        <span class="badge">TypeScript</span>
+        <span class="badge">Azure Native</span>
+        <span class="badge">Open Source</span>
+      </div>
+    </div>
+  </header>
+  
+  <main>
+    <div class="container">
+      <section class="features">
+        <div class="feature">
+          <div class="feature-icon">📄</div>
+          <h3>Multi-Format Support</h3>
+          <p>Upload PDFs, DOCX, TXT, and Markdown. Automatic OCR for scanned documents with Azure AI Vision fallback.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔍</div>
+          <h3>Vector + Hybrid Search</h3>
+          <p>Semantic search with text-embedding-3-large plus BM25 keyword search for optimal relevance.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔒</div>
+          <h3>Enterprise Security</h3>
+          <p>GDPR-compliant with EU data residency (Sweden Central), encryption at rest/transit, and audit logging.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <h3>Streaming Responses</h3>
+          <p>Real-time AI responses with Server-Sent Events. Token-aware context assembly for optimal results.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🧪</div>
+          <h3>Production Ready</h3>
+          <p>TypeScript with strict mode, comprehensive tests, CI/CD pipeline, and Azure Container Apps deployment.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📊</div>
+          <h3>Full Observability</h3>
+          <p>Azure Application Insights integration, structured logging, and distributed tracing out of the box.</p>
+        </div>
+      </section>
+      
+      <section class="pricing">
+        <h2>Simple Pricing</h2>
+        <div class="pricing-grid">
+          <div class="pricing-card">
+            <h3>Basic</h3>
+            <div class="price">€79<span>/one-time</span></div>
+            <ul>
+              <li>Full source code access</li>
+              <li>Basic documentation</li>
+              <li>Community support</li>
+              <li>Self-hosted deployment</li>
+              <li>Single project license</li>
+            </ul>
+          </div>
+          <div class="pricing-card featured">
+            <h3>Pro</h3>
+            <div class="price">€149<span>/one-time</span></div>
+            <ul>
+              <li>Everything in Basic</li>
+              <li>Advanced documentation</li>
+              <li>Priority email support</li>
+              <li>Video walkthrough</li>
+              <li>3 project licenses</li>
+              <li>1 year of updates</li>
+            </ul>
+          </div>
+          <div class="pricing-card">
+            <h3>Enterprise</h3>
+            <div class="price">€499<span>/one-time</span></div>
+            <ul>
+              <li>Everything in Pro</li>
+              <li>Custom integrations</li>
+              <li>Architecture review</li>
+              <li>Slack support channel</li>
+              <li>Unlimited licenses</li>
+              <li>Lifetime updates</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  
+  <section class="cta">
+    <div class="container">
+      <h2>Get Early Access</h2>
+      <p>Join 50+ developers on the waitlist. Be the first to know when we launch.</p>
+      <form class="signup-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+        <input type="email" name="email" placeholder="Enter your email" required>
+        <button type="submit">Join Waitlist →</button>
+      </form>
+    </div>
+  </section>
+  
+  <footer>
+    <div class="container">
+      <p>Built with modern, secure technologies:</p>
+      <div class="tech-stack">
+        <span>TypeScript</span>
+        <span>•</span>
+        <span>Azure OpenAI</span>
+        <span>•</span>
+        <span>Azure AI Search</span>
+        <span>•</span>
+        <span>Azure Container Apps</span>
+        <span>•</span>
+        <span>Terraform</span>
+      </div>
+      <p style="opacity: 0.5; margin-top: 20px;">© 2026 RAG Template Starter. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>
