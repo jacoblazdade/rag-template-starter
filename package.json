@@ -1,0 +1,14 @@
+{
+  "name": "rag-template-starter",
+  "version": "0.1.0",
+  "description": "Production-ready RAG starter kit",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": ["rag", "azure", "openai", "typescript"],
+  "author": "Jacob Lazda",
+  "license": "MIT"
+}
