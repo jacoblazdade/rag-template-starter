@@ -1,8 +1,9 @@
+import type {
+  SearchIndex} from '@azure/search-documents';
 import {
   SearchClient,
   SearchIndexClient,
-  AzureKeyCredential,
-  SearchIndex,
+  AzureKeyCredential
 } from '@azure/search-documents';
 import { env } from '../config/env.js';
 

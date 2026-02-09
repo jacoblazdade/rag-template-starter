@@ -1,4 +1,5 @@
-import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
+import type { ContainerClient } from '@azure/storage-blob';
+import { BlobServiceClient } from '@azure/storage-blob';
 import { env } from '../config/env.js';
 import { randomUUID } from 'crypto';
 

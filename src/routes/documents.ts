@@ -1,4 +1,5 @@
-import { Router, Request, type Router as RouterType } from 'express';
+import type { Request } from 'express';
+import { Router, type Router as RouterType } from 'express';
 import multer from 'multer';
 import { randomUUID } from 'crypto';
 import { BlobStorageService } from '../services/blobStorage.js';
@@ -13,7 +14,8 @@ const parserService = new DocumentParserService();
 const chunkingService = new ChunkingService();
 
 interface DocumentUploadRequest extends Request {
-  file?: Express.Multer.File;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  file?: any;
 }
 
 // Upload document
@@ -79,7 +81,7 @@ router.get('/:documentId/status', async (req, res) => {
     const { documentId } = req.params;
 
     // TODO: Query document status from database
-    
+
     res.json({
       success: true,
       data: {
@@ -101,7 +103,7 @@ router.get('/:documentId/status', async (req, res) => {
 router.get('/', async (_req, res) => {
   try {
     // TODO: Query documents from database
-    
+
     res.json({
       success: true,
       data: {

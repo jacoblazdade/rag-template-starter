@@ -1,7 +1,7 @@
 import { DocumentAnalysisClient, AzureKeyCredential } from '@azure/ai-form-recognizer';
 import { env } from '../config/env.js';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 type PdfParseResult = { text: string; numpages: number; info?: { Title?: string; Author?: string; CreationDate?: string } };
 
 // Dynamic import for pdf-parse to handle ESM/CJS compatibility
