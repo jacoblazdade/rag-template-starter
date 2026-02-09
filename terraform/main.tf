@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.0"
     }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.0"
+    }
   }
 
   # Uncomment to use Azure Blob Storage for Terraform state
@@ -23,6 +27,17 @@ terraform {
 
 provider "azurerm" {
   features {}
+}
+
+# Register required Azure resource providers
+resource "null_resource" "register_providers" {
+  triggers = {
+    always_run = timestamp()
+  }
+
+  provisioner "local-exec" {
+    command = "az provider register --namespace Microsoft.App"
+  }
 }
 
 # Variables
@@ -194,6 +209,13 @@ resource "azurerm_container_app_environment" "main" {
   location                   = var.location
   resource_group_name        = azurerm_resource_group.main.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+
+  # Prevent workspace_id from causing replacement after initial creation
+  lifecycle {
+    ignore_changes = [
+      log_analytics_workspace_id,
+    ]
+  }
 }
 
 # Application Insights
