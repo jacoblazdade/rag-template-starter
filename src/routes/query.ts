@@ -1,8 +1,8 @@
-import { Router } from 'express';
+import { Router, type Router as RouterType } from 'express';
 import { AzureOpenAIService } from '../services/azureOpenAI.js';
 import { AzureSearchService } from '../services/azureSearch.js';
 
-const router = Router();
+const router: RouterType = Router();
 
 const openaiService = new AzureOpenAIService();
 const searchService = new AzureSearchService();

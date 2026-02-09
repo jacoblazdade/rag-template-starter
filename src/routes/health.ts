@@ -1,7 +1,7 @@
-import { Router } from 'express';
+import { Router, type Router as RouterType } from 'express';
 import { env } from '../config/env.js';
 
-const router = Router();
+const router: RouterType = Router();
 
 interface HealthStatus {
   status: 'healthy' | 'unhealthy';

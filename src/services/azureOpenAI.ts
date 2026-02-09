@@ -1,4 +1,4 @@
-import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
+import { AzureOpenAI } from 'openai';
 import { env } from '../config/env.js';
 
 export interface EmbeddingResult {
@@ -16,16 +16,17 @@ export interface CompletionResult {
 }
 
 export class AzureOpenAIService {
-  private client: OpenAIClient;
+  private client: AzureOpenAI;
   private deploymentName: string;
   private embeddingModel = 'text-embedding-3-large';
 
   constructor() {
-    this.client = new OpenAIClient(
-      env.AZURE_OPENAI_ENDPOINT,
-      new AzureKeyCredential(env.AZURE_OPENAI_API_KEY),
-    );
-    this.deploymentName = env.AZURE_OPENAI_DEPLOYMENT_NAME;
+    this.client = new AzureOpenAI({
+      endpoint: env.AZURE_OPENAI_ENDPOINT || '',
+      apiKey: env.AZURE_OPENAI_API_KEY || '',
+      apiVersion: '2024-10-21',
+    });
+    this.deploymentName = env.AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-4o';
   }
 
   /**
@@ -33,15 +34,23 @@ export class AzureOpenAIService {
    */
   async embedText(text: string): Promise<EmbeddingResult> {
     try {
-      const response = await this.client.getEmbeddings(this.embeddingModel, [text]);
+      const response = await this.client.embeddings.create({
+        model: this.embeddingModel,
+        input: text,
+      });
 
       if (!response.data || response.data.length === 0) {
         throw new Error('No embeddings returned');
       }
 
+      const embedding = response.data[0].embedding;
+      if (!embedding) {
+        throw new Error('No embedding data');
+      }
+
       return {
-        embedding: response.data[0].embedding,
-        tokenCount: response.usage?.totalTokens || 0,
+        embedding: Array.isArray(embedding) ? embedding : Object.values(embedding),
+        tokenCount: response.usage?.total_tokens || 0,
       };
     } catch (error) {
       console.error('Embedding error:', error);
@@ -54,12 +63,18 @@ export class AzureOpenAIService {
    */
   async embedBatch(texts: string[]): Promise<EmbeddingResult[]> {
     try {
-      const response = await this.client.getEmbeddings(this.embeddingModel, texts);
+      const response = await this.client.embeddings.create({
+        model: this.embeddingModel,
+        input: texts,
+      });
 
-      return response.data.map((item) => ({
-        embedding: item.embedding,
-        tokenCount: response.usage?.totalTokens || 0,
-      }));
+      return response.data.map((item) => {
+        const embedding = item.embedding;
+        return {
+          embedding: Array.isArray(embedding) ? embedding : Object.values(embedding),
+          tokenCount: response.usage?.total_tokens || 0,
+        };
+      });
     } catch (error) {
       console.error('Batch embedding error:', error);
       throw new Error('Failed to generate batch embeddings');
@@ -75,15 +90,17 @@ export class AzureOpenAIService {
     context?: string,
   ): Promise<CompletionResult> {
     try {
-      const messages = [
-        { role: 'system' as const, content: systemPrompt },
+      const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+        { role: 'system', content: systemPrompt },
         ...(context ? [{ role: 'system' as const, content: `Context:\n${context}` }] : []),
-        { role: 'user' as const, content: userPrompt },
+        { role: 'user', content: userPrompt },
       ];
 
-      const response = await this.client.getChatCompletions(this.deploymentName, messages, {
+      const response = await this.client.chat.completions.create({
+        model: this.deploymentName,
+        messages,
         temperature: 0.7,
-        maxTokens: 1000,
+        max_tokens: 1000,
       });
 
       const choice = response.choices[0];
@@ -94,9 +111,9 @@ export class AzureOpenAIService {
       return {
         text: choice.message.content || '',
         tokenCount: {
-          prompt: response.usage?.promptTokens || 0,
-          completion: response.usage?.completionTokens || 0,
-          total: response.usage?.totalTokens || 0,
+          prompt: response.usage?.prompt_tokens || 0,
+          completion: response.usage?.completion_tokens || 0,
+          total: response.usage?.total_tokens || 0,
         },
       };
     } catch (error) {
@@ -114,15 +131,18 @@ export class AzureOpenAIService {
     context?: string,
   ): AsyncGenerator<string, void, unknown> {
     try {
-      const messages = [
-        { role: 'system' as const, content: systemPrompt },
+      const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+        { role: 'system', content: systemPrompt },
         ...(context ? [{ role: 'system' as const, content: `Context:\n${context}` }] : []),
-        { role: 'user' as const, content: userPrompt },
+        { role: 'user', content: userPrompt },
       ];
 
-      const stream = await this.client.streamChatCompletions(this.deploymentName, messages, {
+      const stream = await this.client.chat.completions.create({
+        model: this.deploymentName,
+        messages,
         temperature: 0.7,
-        maxTokens: 1000,
+        max_tokens: 1000,
+        stream: true,
       });
 
       for await (const chunk of stream) {

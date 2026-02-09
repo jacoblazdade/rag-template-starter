@@ -36,6 +36,9 @@ export class AzureSearchService {
   private indexName: string;
 
   constructor() {
+    if (!env.AZURE_SEARCH_API_KEY || !env.AZURE_SEARCH_ENDPOINT) {
+      throw new Error('Azure Search credentials not configured');
+    }
     const credential = new AzureKeyCredential(env.AZURE_SEARCH_API_KEY);
     this.indexName = env.AZURE_SEARCH_INDEX_NAME;
 
@@ -107,7 +110,7 @@ export class AzureSearchService {
           {
             name: 'default-algorithm',
             kind: 'hnsw',
-            hnswParameters: {
+            parameters: {
               metric: 'cosine',
               m: 4,
               efConstruction: 400,
@@ -118,7 +121,7 @@ export class AzureSearchService {
         profiles: [
           {
             name: 'default-vector-profile',
-            algorithm: 'default-algorithm',
+            algorithmConfigurationName: 'default-algorithm',
           },
         ],
       },

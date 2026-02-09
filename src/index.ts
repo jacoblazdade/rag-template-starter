@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import express from 'express';
+import express, { type Express } from 'express';
 import { errorHandler } from './middleware/errorHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { healthRouter } from './routes/health.js';
@@ -7,7 +7,7 @@ import { documentsRouter } from './routes/documents.js';
 import { queryRouter } from './routes/query.js';
 import { env } from './config/env.js';
 
-const app = express();
+const app: Express = express();
 
 // Middleware
 app.use(express.json());

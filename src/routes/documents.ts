@@ -1,11 +1,11 @@
-import { Router, Request } from 'express';
+import { Router, Request, type Router as RouterType } from 'express';
 import multer from 'multer';
 import { randomUUID } from 'crypto';
 import { BlobStorageService } from '../services/blobStorage.js';
 import { DocumentParserService } from '../services/documentParser.js';
 import { ChunkingService } from '../services/chunking.js';
 
-const router = Router();
+const router: RouterType = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 const blobService = new BlobStorageService();

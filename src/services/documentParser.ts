@@ -1,6 +1,16 @@
 import { DocumentAnalysisClient, AzureKeyCredential } from '@azure/ai-form-recognizer';
-import pdfParse from 'pdf-parse';
 import { env } from '../config/env.js';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PdfParseResult = { text: string; numpages: number; info?: { Title?: string; Author?: string; CreationDate?: string } };
+
+// Dynamic import for pdf-parse to handle ESM/CJS compatibility
+async function parsePdf(buffer: Buffer): Promise<PdfParseResult> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pdfParseModule = await import('pdf-parse') as any;
+  const pdfParse = pdfParseModule.default || pdfParseModule;
+  return pdfParse(buffer) as Promise<PdfParseResult>;
+}
 
 export interface ParsedDocument {
   text: string;
@@ -46,8 +56,8 @@ export class DocumentParserService {
 
   private async tryNativeParse(buffer: Buffer): Promise<ParsedDocument> {
     try {
-      const result = await pdfParse(buffer);
-      
+      const result = await parsePdf(buffer);
+
       return {
         text: result.text,
         method: 'native',
