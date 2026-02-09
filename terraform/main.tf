@@ -45,15 +45,15 @@ variable "location" {
 }
 
 variable "openai_model" {
-  description = "OpenAI model to deploy via Azure Foundry"
+  description = "OpenAI model to deploy"
   type        = string
-  default     = "gpt-5.1"
+  default     = "gpt-4o"
 }
 
 variable "openai_model_version" {
-  description = "Model version (check Azure Foundry for available versions)"
+  description = "Model version (check Azure OpenAI Studio for available versions)"
   type        = string
-  default     = "2025-02-01"
+  default     = "2024-08-06"
 }
 
 variable "monthly_budget_amount" {
