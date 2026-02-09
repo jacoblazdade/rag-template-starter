@@ -1,13 +1,17 @@
 terraform {
   required_version = ">= 1.5.0"
-  
+
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 3.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
   }
-  
+
   # Uncomment to use Azure Blob Storage for Terraform state
   # backend "azurerm" {
   #   resource_group_name  = "terraform-state-rg"
@@ -43,7 +47,7 @@ variable "location" {
 variable "openai_model" {
   description = "OpenAI model to deploy"
   type        = string
-  default     = "gpt-5.1"
+  default     = "gpt-4o"
 }
 
 variable "monthly_budget_amount" {
@@ -58,11 +62,18 @@ variable "budget_alert_email" {
   default     = ""
 }
 
+# Random suffix for unique names
+resource "random_string" "suffix" {
+  length  = 6
+  special = false
+  upper   = false
+}
+
 # Resource Group
 resource "azurerm_resource_group" "main" {
   name     = "${var.prefix}-${var.environment}-rg"
   location = var.location
-  
+
   tags = {
     Environment = var.environment
     Project     = "RAG Template"
@@ -77,7 +88,7 @@ resource "azurerm_cognitive_account" "openai" {
   resource_group_name = azurerm_resource_group.main.name
   kind                = "OpenAI"
   sku_name            = "S0"
-  
+
   tags = {
     Environment = var.environment
     Project     = "RAG Template"
@@ -87,13 +98,13 @@ resource "azurerm_cognitive_account" "openai" {
 resource "azurerm_cognitive_deployment" "gpt" {
   name                 = var.openai_model
   cognitive_account_id = azurerm_cognitive_account.openai.id
-  
+
   model {
     format  = "OpenAI"
     name    = var.openai_model
     version = "2024-08-06"
   }
-  
+
   scale {
     type     = "Standard"
     capacity = 10
@@ -103,13 +114,13 @@ resource "azurerm_cognitive_deployment" "gpt" {
 resource "azurerm_cognitive_deployment" "embedding" {
   name                 = "text-embedding-3-large"
   cognitive_account_id = azurerm_cognitive_account.openai.id
-  
+
   model {
     format  = "OpenAI"
     name    = "text-embedding-3-large"
     version = "1"
   }
-  
+
   scale {
     type     = "Standard"
     capacity = 10
@@ -122,7 +133,7 @@ resource "azurerm_search_service" "main" {
   resource_group_name = azurerm_resource_group.main.name
   location            = var.location
   sku                 = "standard"
-  
+
   tags = {
     Environment = var.environment
     Project     = "RAG Template"
@@ -136,7 +147,7 @@ resource "azurerm_storage_account" "main" {
   location                 = var.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  
+
   tags = {
     Environment = var.environment
     Project     = "RAG Template"
@@ -151,12 +162,12 @@ resource "azurerm_storage_container" "documents" {
 
 # Azure Container Registry
 resource "azurerm_container_registry" "main" {
-  name                = "${var.prefix}${var.environment}acr"
+  name                = "${var.prefix}${var.environment}acr${random_string.suffix.result}"
   resource_group_name = azurerm_resource_group.main.name
   location            = var.location
   sku                 = "Standard"
   admin_enabled       = true
-  
+
   tags = {
     Environment = var.environment
     Project     = "RAG Template"
@@ -185,7 +196,7 @@ resource "azurerm_application_insights" "main" {
   location            = var.location
   resource_group_name = azurerm_resource_group.main.name
   application_type    = "Node.JS"
-  
+
   tags = {
     Environment = var.environment
     Project     = "RAG Template"
@@ -206,41 +217,39 @@ resource "azurerm_monitor_action_group" "budget_alerts" {
 }
 
 resource "azurerm_consumption_budget_subscription" "main" {
+  count             = var.budget_alert_email != "" ? 1 : 0
   name              = "${var.prefix}-${var.environment}-budget"
   subscription_id   = data.azurerm_subscription.current.id
   amount            = var.monthly_budget_amount
   time_grain        = "Monthly"
-  
+
   time_period {
     start_date = formatdate("YYYY-MM-01'T'00:00:00Z", timestamp())
   }
-  
+
   notification {
     enabled        = true
     threshold      = 80
     operator       = "GreaterThan"
     threshold_type = "Actual"
-    contact_emails = var.budget_alert_email != "" ? [var.budget_alert_email] : []
+    contact_emails = [var.budget_alert_email]
   }
-  
+
   notification {
     enabled        = true
     threshold      = 100
     operator       = "GreaterThan"
     threshold_type = "Actual"
-    contact_emails = var.budget_alert_email != "" ? [var.budget_alert_email] : []
+    contact_emails = [var.budget_alert_email]
   }
 
-  dynamic "notification" {
-    for_each = var.budget_alert_email != "" ? [1] : []
-    content {
-      enabled        = true
-      threshold      = 80
-      operator       = "GreaterThan"
-      threshold_type = "Forecasted"
-      contact_emails = [var.budget_alert_email]
-      contact_groups = [azurerm_monitor_action_group.budget_alerts[0].id]
-    }
+  notification {
+    enabled        = true
+    threshold      = 80
+    operator       = "GreaterThan"
+    threshold_type = "Forecasted"
+    contact_emails = [var.budget_alert_email]
+    contact_groups = [azurerm_monitor_action_group.budget_alerts[0].id]
   }
 }
 
@@ -280,4 +289,8 @@ output "storage_connection_string" {
 output "application_insights_connection_string" {
   value     = azurerm_application_insights.main.connection_string
   sensitive = true
+}
+
+output "acr_login_server" {
+  value = azurerm_container_registry.main.login_server
 }
