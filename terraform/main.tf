@@ -46,6 +46,18 @@ variable "openai_model" {
   default     = "gpt-5.1"
 }
 
+variable "monthly_budget_amount" {
+  description = "Monthly budget amount in USD"
+  type        = number
+  default     = 100
+}
+
+variable "budget_alert_email" {
+  description = "Email for budget alerts"
+  type        = string
+  default     = ""
+}
+
 # Resource Group
 resource "azurerm_resource_group" "main" {
   name     = "${var.prefix}-${var.environment}-rg"
@@ -179,6 +191,61 @@ resource "azurerm_application_insights" "main" {
     Project     = "RAG Template"
   }
 }
+
+# Budget Alerts
+resource "azurerm_monitor_action_group" "budget_alerts" {
+  count               = var.budget_alert_email != "" ? 1 : 0
+  name                = "${var.prefix}-${var.environment}-budget-alerts"
+  resource_group_name = azurerm_resource_group.main.name
+  short_name          = "BudgetAlert"
+
+  email_receiver {
+    name          = "BudgetAlertEmail"
+    email_address = var.budget_alert_email
+  }
+}
+
+resource "azurerm_consumption_budget_subscription" "main" {
+  name              = "${var.prefix}-${var.environment}-budget"
+  subscription_id   = data.azurerm_subscription.current.id
+  amount            = var.monthly_budget_amount
+  time_grain        = "Monthly"
+  
+  time_period {
+    start_date = formatdate("YYYY-MM-01'T'00:00:00Z", timestamp())
+  }
+  
+  notification {
+    enabled        = true
+    threshold      = 80
+    operator       = "GreaterThan"
+    threshold_type = "Actual"
+    contact_emails = var.budget_alert_email != "" ? [var.budget_alert_email] : []
+  }
+  
+  notification {
+    enabled        = true
+    threshold      = 100
+    operator       = "GreaterThan"
+    threshold_type = "Actual"
+    contact_emails = var.budget_alert_email != "" ? [var.budget_alert_email] : []
+  }
+
+  dynamic "notification" {
+    for_each = var.budget_alert_email != "" ? [1] : []
+    content {
+      enabled        = true
+      threshold      = 80
+      operator       = "GreaterThan"
+      threshold_type = "Forecasted"
+      contact_emails = [var.budget_alert_email]
+      contact_groups = [azurerm_monitor_action_group.budget_alerts[0].id]
+    }
+  }
+}
+
+# Data source for current subscription
+data "azurerm_subscription" "current" {}
 
 # Outputs
 output "resource_group_name" {
