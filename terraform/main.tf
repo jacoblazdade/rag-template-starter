@@ -45,9 +45,15 @@ variable "location" {
 }
 
 variable "openai_model" {
-  description = "OpenAI model to deploy"
+  description = "OpenAI model to deploy via Azure Foundry"
   type        = string
-  default     = "gpt-4o"
+  default     = "gpt-5.1"
+}
+
+variable "openai_model_version" {
+  description = "Model version (check Azure Foundry for available versions)"
+  type        = string
+  default     = "2025-02-01"
 }
 
 variable "monthly_budget_amount" {
@@ -102,7 +108,7 @@ resource "azurerm_cognitive_deployment" "gpt" {
   model {
     format  = "OpenAI"
     name    = var.openai_model
-    version = "2024-08-06"
+    version = var.openai_model_version
   }
 
   scale {
