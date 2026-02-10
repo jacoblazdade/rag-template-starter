@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { AzureSearchService } from '../services/azureSearch.js';
 
 async function main(): Promise<void> {
