@@ -39,6 +39,7 @@
     "eslint": "^10.0.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.8.1",
+    "prisma": "^7.3.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
@@ -49,6 +50,7 @@
     "@azure/openai": "^2.0.0",
     "@azure/search-documents": "^12.2.0",
     "@azure/storage-blob": "^12.30.0",
+    "@prisma/client": "^7.3.0",
     "bullmq": "^5.67.3",
     "dotenv": "^17.2.4",
     "express": "^5.2.1",

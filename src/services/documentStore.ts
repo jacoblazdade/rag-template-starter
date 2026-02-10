@@ -1,65 +1,85 @@
-export interface Document {
-  id: string;
-  filename: string;
-  size: number;
-  blobName: string;
-  parseMethod: 'native' | 'azure-ocr';
-  pageCount: number;
-  chunkCount: number;
-  status: 'uploaded' | 'processing' | 'indexed' | 'failed';
-  jobId?: string | number;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { prisma } from '../lib/prisma.js';
+import type { Document, Chunk } from '@prisma/client';
 
-class DocumentStore {
-  private documents: Map<string, Document> = new Map();
+export type { Document, Chunk };
 
-  add(doc: Document): void {
-    this.documents.set(doc.id, doc);
+export class DocumentStore {
+  async add(doc: Omit<Document, 'id' | 'createdAt' | 'updatedAt'>): Promise<Document> {
+    return prisma.document.create({
+      data: doc as Document,
+    });
   }
 
-  get(id: string): Document | undefined {
-    return this.documents.get(id);
+  async get(id: string): Promise<Document | null> {
+    return prisma.document.findUnique({
+      where: { id },
+      include: { chunks: true },
+    });
   }
 
-  getAll(): Document[] {
-    return Array.from(this.documents.values()).sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-    );
+  async getAll(): Promise<Document[]> {
+    return prisma.document.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  update(id: string, updates: Partial<Document>): Document | undefined {
-    const doc = this.documents.get(id);
-    if (!doc) return undefined;
-    
-    const updated = { ...doc, ...updates, updatedAt: new Date() };
-    this.documents.set(id, updated);
-    return updated;
+  async update(id: string, updates: Partial<Document>): Promise<Document | null> {
+    return prisma.document.update({
+      where: { id },
+      data: updates,
+    });
   }
 
-  delete(id: string): boolean {
-    return this.documents.delete(id);
+  async delete(id: string): Promise<boolean> {
+    try {
+      await prisma.document.delete({ where: { id } });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
-  getStats(): {
+  async getStats(): Promise<{
     totalDocuments: number;
     totalChunks: number;
     indexedDocuments: number;
     avgChunksPerDoc: number;
-  } {
-    const docs = this.getAll();
-    const totalChunks = docs.reduce((sum, d) => sum + d.chunkCount, 0);
-    const indexedDocs = docs.filter(d => d.status === 'indexed').length;
-    
-    return {
-      totalDocuments: docs.length,
+  }> {
+    const [
+      totalDocuments,
       totalChunks,
-      indexedDocuments: indexedDocs,
-      avgChunksPerDoc: docs.length > 0 ? Math.round(totalChunks / docs.length) : 0,
+      indexedDocuments,
+      avgChunks,
+    ] = await Promise.all([
+      prisma.document.count(),
+      prisma.chunk.count(),
+      prisma.document.count({ where: { status: 'indexed' } }),
+      prisma.document.aggregate({
+        _avg: { chunkCount: true },
+      }),
+    ]);
+
+    return {
+      totalDocuments,
+      totalChunks,
+      indexedDocuments,
+      avgChunksPerDoc: Math.round(avgChunks._avg?.chunkCount || 0),
     };
+  }
+
+  // Chunk operations
+  async addChunk(chunk: Omit<Chunk, 'id'>): Promise<Chunk> {
+    return prisma.chunk.create({
+      data: chunk as Chunk,
+    });
+  }
+
+  async getChunksByDocumentId(documentId: string): Promise<Chunk[]> {
+    return prisma.chunk.findMany({
+      where: { documentId },
+      orderBy: { chunkIndex: 'asc' },
+    });
   }
 }
 
-// Singleton instance
 export const documentStore = new DocumentStore();

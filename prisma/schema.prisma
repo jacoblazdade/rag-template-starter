@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Document {
+  id           String   @id @default(uuid())
+  filename     String
+  size         Int
+  blobName     String
+  parseMethod  String
+  pageCount    Int
+  chunkCount   Int
+  status       String   @default("uploaded") // uploaded, processing, indexed, failed
+  jobId        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  chunks       Chunk[]
+  
+  @@map("documents")
+}
+
+model Chunk {
+  id           String   @id @default(uuid())
+  documentId   String
+  chunkIndex   Int
+  text         String
+  pageNumber   Int?
+  embedding    Unsupported("vector(3072)")? // pgvector extension
+  
+  document     Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  @@map("chunks")
+  @@index([documentId])
+}
