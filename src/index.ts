@@ -28,8 +28,10 @@ app.listen(env.PORT, () => {
   console.log(`📊 Health check: http://localhost:${env.PORT}/api/v1/health`);
 });
 
-// Start document processing worker
-startDocumentWorker();
-console.log('📋 Document processing worker started');
+// Start document processing worker (if Redis is available)
+const worker = startDocumentWorker();
+if (worker) {
+  console.log('📋 Document processing worker started');
+}
 
 export { app };

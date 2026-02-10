@@ -72,8 +72,8 @@ router.post('/', upload.single('file'), async (req: DocumentUploadRequest, res) 
         parseMethod: parseResult.method,
         pageCount: parseResult.pageCount,
         chunkCount: chunks.length,
-        status: 'processing',
-        jobId: job.id,
+        status: job ? 'processing' : 'uploaded',
+        jobId: job?.id,
       },
     });
   } catch (error) {

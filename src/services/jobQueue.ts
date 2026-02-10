@@ -9,88 +9,125 @@ interface ProcessDocumentJob {
   chunks: DocumentChunk[];
 }
 
-// Redis connection
+// Redis connection config
 const redisConnection = {
   url: env.REDIS_URL,
 };
 
-// Job queue
-export const documentQueue = new Queue('document-processing', {
-  connection: redisConnection,
-});
+// Lazy-loaded queue
+let documentQueue: Queue<ProcessDocumentJob> | null = null;
+
+function getQueue(): Queue<ProcessDocumentJob> {
+  if (!documentQueue) {
+    documentQueue = new Queue('document-processing', {
+      connection: redisConnection,
+    });
+  }
+  return documentQueue;
+}
+
+// Worker instance
+let worker: Worker | null = null;
 
 // Worker to process jobs
-export function startDocumentWorker(): Worker {
-  const openaiService = new AzureOpenAIService();
-  const searchService = new AzureSearchService();
+export function startDocumentWorker(): Worker | null {
+  // Skip if Redis is not configured
+  if (!env.REDIS_URL) {
+    console.warn('⚠️  REDIS_URL not set, document processing worker not started');
+    return null;
+  }
 
-  const worker = new Worker(
-    'document-processing',
-    async (job: Job<ProcessDocumentJob>) => {
-      const { documentId, chunks } = job.data;
+  if (worker) {
+    return worker;
+  }
 
-      console.log(`📝 Processing document ${documentId} with ${chunks.length} chunks...`);
+  try {
+    const openaiService = new AzureOpenAIService();
+    const searchService = new AzureSearchService();
 
-      // Update progress
-      await job.updateProgress(10);
+    worker = new Worker(
+      'document-processing',
+      async (job: Job<ProcessDocumentJob>) => {
+        const { documentId, chunks } = job.data;
 
-      // Generate embeddings for all chunks
-      const texts = chunks.map((chunk) => chunk.text);
-      const embeddings = await openaiService.embedBatch(texts);
+        console.log(`📝 Processing document ${documentId} with ${chunks.length} chunks...`);
 
-      await job.updateProgress(50);
+        // Update progress
+        await job.updateProgress(10);
 
-      // Prepare documents for indexing
-      const documents = chunks.map((chunk, index) => ({
-        id: chunk.id,
-        documentId: chunk.metadata.documentId,
-        chunkIndex: chunk.metadata.chunkIndex,
-        text: chunk.text,
-        embedding: embeddings[index].embedding,
-        pageNumber: chunk.metadata.pageNumber,
-        metadata: {
-          totalChunks: chunk.metadata.totalChunks,
-        },
-      }));
+        // Generate embeddings for all chunks
+        const texts = chunks.map((chunk) => chunk.text);
+        const embeddings = await openaiService.embedBatch(texts);
 
-      await job.updateProgress(75);
+        await job.updateProgress(50);
 
-      // Index in Azure Search
-      await searchService.indexChunks(documents);
+        // Prepare documents for indexing
+        const documents = chunks.map((chunk, index) => ({
+          id: chunk.id,
+          documentId: chunk.metadata.documentId,
+          chunkIndex: chunk.metadata.chunkIndex,
+          text: chunk.text,
+          embedding: embeddings[index].embedding,
+          pageNumber: chunk.metadata.pageNumber,
+          metadata: {
+            totalChunks: chunk.metadata.totalChunks,
+          },
+        }));
 
-      await job.updateProgress(100);
+        await job.updateProgress(75);
 
-      console.log(`✅ Document ${documentId} processed successfully`);
+        // Index in Azure Search
+        await searchService.indexChunks(documents);
 
-      return { documentId, indexedChunks: chunks.length };
-    },
-    { connection: redisConnection },
-  );
+        await job.updateProgress(100);
 
-  worker.on('completed', (job, result) => {
-    console.log(`✅ Job ${job.id} completed:`, result);
-  });
+        console.log(`✅ Document ${documentId} processed successfully`);
 
-  worker.on('failed', (job, err) => {
-    console.error(`❌ Job ${job?.id} failed:`, err);
-  });
+        return { documentId, indexedChunks: chunks.length };
+      },
+      { connection: redisConnection },
+    );
 
-  return worker;
+    worker.on('completed', (job, result) => {
+      console.log(`✅ Job ${job.id} completed:`, result);
+    });
+
+    worker.on('failed', (job, err) => {
+      console.error(`❌ Job ${job?.id} failed:`, err);
+    });
+
+    console.log('📋 Document processing worker started');
+    return worker;
+  } catch (error) {
+    console.error('❌ Failed to start document worker:', error);
+    return null;
+  }
 }
 
 // Add job to queue
 export async function queueDocumentProcessing(
   documentId: string,
   chunks: DocumentChunk[],
-): Promise<Job<ProcessDocumentJob>> {
-  return documentQueue.add('process-document', {
-    documentId,
-    chunks,
-  }, {
-    attempts: 3,
-    backoff: {
-      type: 'exponential',
-      delay: 5000,
-    },
-  });
+): Promise<Job<ProcessDocumentJob> | null> {
+  // Skip if Redis is not configured
+  if (!env.REDIS_URL) {
+    console.warn('⚠️  REDIS_URL not set, skipping document processing queue');
+    return null;
+  }
+
+  try {
+    return getQueue().add('process-document', {
+      documentId,
+      chunks,
+    }, {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 5000,
+      },
+    });
+  } catch (error) {
+    console.error('❌ Failed to queue document processing:', error);
+    return null;
+  }
 }
