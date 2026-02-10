@@ -69,9 +69,7 @@ export function startDocumentWorker(): Worker | null {
           text: chunk.text,
           embedding: embeddings[index].embedding,
           pageNumber: chunk.metadata.pageNumber,
-          metadata: {
-            totalChunks: chunk.metadata.totalChunks,
-          },
+          metadata: {},
         }));
 
         await job.updateProgress(75);
