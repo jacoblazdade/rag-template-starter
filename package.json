@@ -4,7 +4,7 @@
   "description": "Production-ready RAG template for GDPR-compliant AI applications",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch --import ./src/lib/dotenv.ts src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "vitest",
