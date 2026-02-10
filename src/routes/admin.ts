@@ -20,8 +20,8 @@ router.get('/', async (_req, res) => {
 // Get admin stats
 router.get('/stats', async (_req, res) => {
   try {
-    const stats = documentStore.getStats();
-    const allDocs = documentStore.getAll();
+    const stats = await documentStore.getStats();
+    const allDocs = await documentStore.getAll();
     const lastDoc = allDocs[0];
 
     res.json({

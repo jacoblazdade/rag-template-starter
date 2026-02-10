@@ -1,7 +1,6 @@
 import type { Request } from 'express';
 import { Router, type Router as RouterType } from 'express';
 import multer from 'multer';
-import { randomUUID } from 'crypto';
 import { BlobStorageService } from '../services/blobStorage.js';
 import { DocumentParserService } from '../services/documentParser.js';
 import { ChunkingService } from '../services/chunking.js';
@@ -48,11 +47,22 @@ router.post('/', upload.single('file'), async (req: DocumentUploadRequest, res) 
       return;
     }
 
-    // Generate document ID
-    const documentId = randomUUID();
-
     // Upload to blob storage
     const uploadResult = await getBlobService().uploadDocument(buffer, originalname);
+
+    // Store document metadata first
+    const doc = await documentStore.add({
+      filename: originalname,
+      size,
+      blobName: uploadResult.blobName,
+      parseMethod: 'native',
+      pageCount: 0,
+      chunkCount: 0,
+      status: 'uploaded',
+      jobId: '',
+    });
+    
+    const documentId = doc.id;
 
     // Parse document
     const parseResult = await parserService.parseDocument(buffer);
@@ -63,20 +73,13 @@ router.post('/', upload.single('file'), async (req: DocumentUploadRequest, res) 
     // Queue chunks for embedding and indexing
     const job = await queueDocumentProcessing(documentId, chunks);
 
-    // Store document metadata
-    const now = new Date();
-    documentStore.add({
-      id: documentId,
-      filename: originalname,
-      size,
-      blobName: uploadResult.blobName,
+    // Update document with parsed info
+    await documentStore.update(documentId, {
       parseMethod: parseResult.method,
       pageCount: parseResult.pageCount,
       chunkCount: chunks.length,
       status: job ? 'processing' : 'uploaded',
-      jobId: job?.id,
-      createdAt: now,
-      updatedAt: now,
+      jobId: String(job?.id || ''),
     });
 
     res.json({
@@ -106,7 +109,7 @@ router.post('/', upload.single('file'), async (req: DocumentUploadRequest, res) 
 router.get('/:documentId/status', async (req, res) => {
   try {
     const { documentId } = req.params;
-    const doc = documentStore.get(documentId);
+    const doc = await documentStore.get(documentId);
 
     if (!doc) {
       res.status(404).json({
@@ -138,7 +141,7 @@ router.get('/:documentId/status', async (req, res) => {
 // List documents
 router.get('/', async (_req, res) => {
   try {
-    const documents = documentStore.getAll();
+    const documents = await documentStore.getAll();
 
     res.json({
       success: true,
@@ -170,7 +173,7 @@ router.delete('/:documentId', async (req, res) => {
     const { documentId } = req.params;
 
     // Remove from store
-    const deleted = documentStore.delete(documentId);
+    const deleted = await documentStore.delete(documentId);
 
     if (!deleted) {
       res.status(404).json({

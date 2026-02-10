@@ -41,7 +41,7 @@ export default [
     },
   },
   {
-    ignores: ['dist/', 'node_modules/', '*.config.js', '**/*.test.ts', 'vitest.config.ts'],
+    ignores: ['dist/', 'node_modules/', '*.config.js', '**/*.test.ts', 'vitest.config.ts', 'prisma.config.ts'],
   },
   prettier,
 ];
