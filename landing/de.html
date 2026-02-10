@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG Template Starter - DSGVO-konforme KI-Dokumenten-Chat</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    header { padding: 60px 0; text-align: center; color: white; }
+    header h1 { font-size: 3.5rem; font-weight: 700; margin-bottom: 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    header p { font-size: 1.25rem; opacity: 0.9; max-width: 600px; margin: 0 auto 40px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; font-size: 0.875rem; margin: 0 5px 10px; backdrop-filter: blur(10px); }
+    main { background: white; border-radius: 20px 20px 0 0; padding: 60px 0; }
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; margin: 60px 0; }
+    .feature { text-align: center; padding: 30px; border-radius: 12px; background: #f8f9fa; }
+    .feature-icon { font-size: 3rem; margin-bottom: 20px; }
+    .feature h3 { font-size: 1.5rem; margin-bottom: 15px; color: #667eea; }
+    .pricing { margin: 80px 0; }
+    .pricing h2 { text-align: center; font-size: 2.5rem; margin-bottom: 60px; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+    .pricing-card { border: 2px solid #e9ecef; border-radius: 16px; padding: 40px 30px; text-align: center; }
+    .pricing-card.featured { border-color: #667eea; box-shadow: 0 10px 40px rgba(102, 126, 234, 0.15); }
+    .price { font-size: 3rem; font-weight: 700; color: #667eea; margin: 20px 0; }
+    .price span { font-size: 1rem; color: #6c757d; }
+    .pricing-card ul { list-style: none; margin: 30px 0; text-align: left; }
+    .pricing-card li { padding: 10px 0; border-bottom: 1px solid #e9ecef; }
+    .pricing-card li::before { content: '✓'; color: #28a745; font-weight: bold; margin-right: 10px; }
+    .cta { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 80px 0; text-align: center; }
+    .cta h2 { font-size: 2.5rem; margin-bottom: 20px; }
+    .signup-form { max-width: 500px; margin: 0 auto; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .signup-form input { flex: 1; min-width: 250px; padding: 16px 24px; border: none; border-radius: 8px; font-size: 1rem; }
+    .signup-form button { padding: 16px 32px; background: #ffd700; color: #333; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+    footer { background: #1a1a2e; color: white; padding: 40px 0; text-align: center; }
+    .lang-switcher { position: fixed; top: 20px; right: 20px; background: rgba(255,255,255,0.9); padding: 10px 20px; border-radius: 8px; z-index: 1000; }
+    .lang-switcher a { color: #333; text-decoration: none; margin: 0 5px; font-weight: 500; }
+    .lang-switcher a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="lang-switcher">
+    <a href="index.html">🇬🇧 EN</a> | <a href="de.html">🇩🇪 DE</a> | <a href="fr.html">🇫🇷 FR</a> | <a href="nl.html">🇳🇱 NL</a> | <a href="es.html">🇪🇸 ES</a>
+  </div>
+
+  <header>
+    <div class="container">
+      <h1>🚀 RAG Template Starter</h1>
+      <p>Produktionsreifes, DSGVO-konformes RAG-System für EU-Entwickler. Baue KI-Dokumenten-Chatbots mit Azure OpenAI, TypeScript und Enterprise-Security.</p>
+      <div>
+        <span class="badge">🇪🇺 DSGVO-konform</span>
+        <span class="badge">TypeScript</span>
+        <span class="badge">Azure Native</span>
+        <span class="badge">Open Source</span>
+      </div>
+    </div>
+  </header>
+  
+  <main>
+    <div class="container">
+      <section class="features">
+        <div class="feature">
+          <div class="feature-icon">📄</div>
+          <h3>Multi-Format Unterstützung</h3>
+          <p>Laden Sie PDFs, DOCX, TXT und Markdown hoch. Automatische OCR für gescannte Dokumente mit Azure AI Vision Fallback.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔍</div>
+          <h3>Vektor + Hybrid Suche</h3>
+          <p>Semantische Suche mit text-embedding-3-large plus BM25 Keyword-Suche für optimale Relevanz.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔒</div>
+          <h3>Enterprise Security</h3>
+          <p>DSGVO-konform mit EU-Datenspeicherung (Schweden), Verschlüsselung ruhend/transportiert und Audit-Logging.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <h3>Streaming Antworten</h3>
+          <p>Echtzeit-KI-Antworten mit Server-Sent Events. Token-bewusste Kontext-Zusammenstellung.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🧪</div>
+          <h3>Produktionsreif</h3>
+          <p>TypeScript mit Strict Mode, umfassende Tests, CI/CD-Pipeline und Azure Container Apps Deployment.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📊</div>
+          <h3>Volle Observability</h3>
+          <p>Azure Application Insights Integration, strukturiertes Logging und Distributed Tracing out of the box.</p>
+        </div>
+      </section>
+      
+      <section class="pricing">
+        <h2>Simple Preisgestaltung</h2>
+        <div class="pricing-grid">
+          <div class="pricing-card">
+            <h3>Basic</h3>
+            <div class="price">€79<span>/einmalig</span></div>
+            <ul>
+              <li>Vollständiger Quellcode-Zugang</li>
+              <li>Basis-Dokumentation</li>
+              <li>Community-Support</li>
+              <li>Self-hosted Deployment</li>
+              <li>Single-Projekt Lizenz</li>
+            </ul>
+          </div>
+          <div class="pricing-card featured">
+            <h3>Pro</h3>
+            <div class="price">€149<span>/einmalig</span></div>
+            <ul>
+              <li>Alles aus Basic</li>
+              <li>Erweiterte Dokumentation</li>
+              <li>Prioritäts-Email-Support</li>
+              <li>Video-Walkthrough</li>
+              <li>3 Projekt-Lizenzen</li>
+              <li>1 Jahr Updates</li>
+            </ul>
+          </div>
+          <div class="pricing-card">
+            <h3>Enterprise</h3>
+            <div class="price">€499<span>/einmalig</span></div>
+            <ul>
+              <li>Alles aus Pro</li>
+              <li>Custom Integrationen</li>
+              <li>Architektur-Review</li>
+              <li>Slack Support-Channel</li>
+              <li>Unbegrenzte Lizenzen</li>
+              <li>Lebenslange Updates</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  
+  <section class="cta">
+    <div class="container">
+      <h2>Frühen Zugang Sichern</h2>
+      <p>Schließen Sie sich 50+ Entwicklern auf der Warteliste an. Seien Sie der Erste, der vom Launch erfährt.</p>
+      <form class="signup-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+        <input type="email" name="email" placeholder="Ihre E-Mail-Adresse" required>
+        <input type="hidden" name="language" value="de">
+        <button type="submit">Warteliste Beitreten →</button>
+      </form>
+    </div>
+  </section>
+  
+  <footer>
+    <div class="container">
+      <p>Entwickelt mit modernen, sicheren Technologien:</p>
+      <div style="display: flex; justify-content: center; gap: 30px; margin: 30px 0; flex-wrap: wrap;">
+        <span>TypeScript</span><span>•</span><span>Azure OpenAI</span><span>•</span><span>Azure AI Search</span><span>•</span><span>Azure Container Apps</span><span>•</span><span>Terraform</span>
+      </div>
+      <p style="opacity: 0.5; margin-top: 20px;">© 2026 RAG Template Starter. Alle Rechte vorbehalten.</p>
+    </div>
+  </footer>
+</body>
+</html>
