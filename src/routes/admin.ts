@@ -1,6 +1,7 @@
 import { Router, type Router as RouterType } from 'express';
 import { readFile } from 'fs/promises';
 import { resolve } from 'path';
+import { documentStore } from '../services/documentStore.js';
 
 const router: RouterType = Router();
 
@@ -18,17 +19,16 @@ router.get('/', async (_req, res) => {
 // Get admin stats
 router.get('/stats', async (_req, res) => {
   try {
-    // TODO: Get real stats from database
-    // For now, return mock data
+    const stats = documentStore.getStats();
+    const allDocs = documentStore.getAll();
+    const lastDoc = allDocs[0];
+
     res.json({
       success: true,
       data: {
-        totalDocuments: 0,
-        totalChunks: 0,
-        indexedDocuments: 0,
-        avgChunksPerDoc: 0,
-        lastUpload: null,
-        storageUsed: 0,
+        ...stats,
+        lastUpload: lastDoc?.createdAt || null,
+        storageUsed: allDocs.reduce((sum, d) => sum + d.size, 0),
       },
     });
   } catch (error) {

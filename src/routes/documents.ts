@@ -6,6 +6,7 @@ import { BlobStorageService } from '../services/blobStorage.js';
 import { DocumentParserService } from '../services/documentParser.js';
 import { ChunkingService } from '../services/chunking.js';
 import { queueDocumentProcessing } from '../services/jobQueue.js';
+import { documentStore } from '../services/documentStore.js';
 
 const router: RouterType = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -62,6 +63,22 @@ router.post('/', upload.single('file'), async (req: DocumentUploadRequest, res) 
     // Queue chunks for embedding and indexing
     const job = await queueDocumentProcessing(documentId, chunks);
 
+    // Store document metadata
+    const now = new Date();
+    documentStore.add({
+      id: documentId,
+      filename: originalname,
+      size,
+      blobName: uploadResult.blobName,
+      parseMethod: parseResult.method,
+      pageCount: parseResult.pageCount,
+      chunkCount: chunks.length,
+      status: job ? 'processing' : 'uploaded',
+      jobId: job?.id,
+      createdAt: now,
+      updatedAt: now,
+    });
+
     res.json({
       success: true,
       data: {
@@ -89,15 +106,24 @@ router.post('/', upload.single('file'), async (req: DocumentUploadRequest, res) 
 router.get('/:documentId/status', async (req, res) => {
   try {
     const { documentId } = req.params;
+    const doc = documentStore.get(documentId);
 
-    // TODO: Query document status from database
+    if (!doc) {
+      res.status(404).json({
+        success: false,
+        error: 'Document not found',
+      });
+      return;
+    }
 
     res.json({
       success: true,
       data: {
-        documentId,
-        status: 'processing',
-        progress: 0.5,
+        documentId: doc.id,
+        status: doc.status,
+        chunkCount: doc.chunkCount,
+        jobId: doc.jobId,
+        createdAt: doc.createdAt,
       },
     });
   } catch (error) {
@@ -112,13 +138,21 @@ router.get('/:documentId/status', async (req, res) => {
 // List documents
 router.get('/', async (_req, res) => {
   try {
-    // TODO: Query documents from database
+    const documents = documentStore.getAll();
 
     res.json({
       success: true,
       data: {
-        documents: [],
-        total: 0,
+        documents: documents.map(d => ({
+          id: d.id,
+          filename: d.filename,
+          size: d.size,
+          status: d.status,
+          chunkCount: d.chunkCount,
+          pageCount: d.pageCount,
+          createdAt: d.createdAt,
+        })),
+        total: documents.length,
       },
     });
   } catch (error) {
@@ -135,7 +169,17 @@ router.delete('/:documentId', async (req, res) => {
   try {
     const { documentId } = req.params;
 
-    // TODO: Delete from database
+    // Remove from store
+    const deleted = documentStore.delete(documentId);
+
+    if (!deleted) {
+      res.status(404).json({
+        success: false,
+        error: 'Document not found',
+      });
+      return;
+    }
+
     // TODO: Delete from blob storage
     // TODO: Delete from search index
 
