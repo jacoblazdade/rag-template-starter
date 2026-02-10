@@ -30,9 +30,7 @@ model Chunk {
   chunkIndex   Int
   text         String
   pageNumber   Int?
-  // Note: For vector search with pgvector, enable the extension:
-  // CREATE EXTENSION IF NOT EXISTS vector;
-  // Then add: embedding    Unsupported("vector(3072)")?
+  embedding    Unsupported("vector(3072)")?
   
   document     Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
   
