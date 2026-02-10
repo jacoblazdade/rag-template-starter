@@ -148,6 +148,20 @@ resource "azurerm_cognitive_deployment" "embedding" {
   }
 }
 
+# Azure Document Intelligence (OCR for PDFs)
+resource "azurerm_cognitive_account" "document_intelligence" {
+  name                = "${var.prefix}-${var.environment}-docintelligence"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.main.name
+  kind                = "FormRecognizer"
+  sku_name            = "S0"
+
+  tags = {
+    Environment = var.environment
+    Project     = "RAG Template"
+  }
+}
+
 # Azure AI Search
 resource "azurerm_search_service" "main" {
   name                = "${var.prefix}${var.environment}search"
@@ -329,6 +343,16 @@ output "storage_connection_string" {
 
 output "application_insights_connection_string" {
   value     = azurerm_application_insights.main.connection_string
+  sensitive = true
+}
+
+output "document_intelligence_endpoint" {
+  value     = azurerm_cognitive_account.document_intelligence.endpoint
+  sensitive = false
+}
+
+output "document_intelligence_key" {
+  value     = azurerm_cognitive_account.document_intelligence.primary_access_key
   sensitive = true
 }
 
