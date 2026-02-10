@@ -30,6 +30,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/express": "^5.0.6",
+    "@types/ioredis": "^5.0.0",
     "@types/multer": "^2.0.0",
     "@types/node": "^25.2.2",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
@@ -48,8 +49,10 @@
     "@azure/openai": "^2.0.0",
     "@azure/search-documents": "^12.2.0",
     "@azure/storage-blob": "^12.30.0",
+    "bullmq": "^5.67.3",
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
+    "ioredis": "^5.9.2",
     "multer": "^2.0.2",
     "openai": "^6.18.0",
     "pdf-parse": "^2.4.5",

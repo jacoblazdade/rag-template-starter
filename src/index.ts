@@ -6,6 +6,7 @@ import { healthRouter } from './routes/health.js';
 import { documentsRouter } from './routes/documents.js';
 import { queryRouter } from './routes/query.js';
 import { env } from './config/env.js';
+import { startDocumentWorker } from './services/jobQueue.js';
 
 const app: Express = express();
 
@@ -26,5 +27,9 @@ app.listen(env.PORT, () => {
   console.log(`🚀 RAG Template API running on port ${env.PORT}`);
   console.log(`📊 Health check: http://localhost:${env.PORT}/api/v1/health`);
 });
+
+// Start document processing worker
+startDocumentWorker();
+console.log('📋 Document processing worker started');
 
 export { app };

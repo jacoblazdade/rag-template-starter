@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto';
 import { BlobStorageService } from '../services/blobStorage.js';
 import { DocumentParserService } from '../services/documentParser.js';
 import { ChunkingService } from '../services/chunking.js';
+import { queueDocumentProcessing } from '../services/jobQueue.js';
 
 const router: RouterType = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -58,8 +59,8 @@ router.post('/', upload.single('file'), async (req: DocumentUploadRequest, res) 
     // Chunk document
     const chunks = chunkingService.chunkDocument(parseResult.text, documentId);
 
-    // TODO: Store document metadata in database
-    // TODO: Queue chunks for embedding and indexing
+    // Queue chunks for embedding and indexing
+    const job = await queueDocumentProcessing(documentId, chunks);
 
     res.json({
       success: true,
@@ -72,6 +73,7 @@ router.post('/', upload.single('file'), async (req: DocumentUploadRequest, res) 
         pageCount: parseResult.pageCount,
         chunkCount: chunks.length,
         status: 'processing',
+        jobId: job.id,
       },
     });
   } catch (error) {
