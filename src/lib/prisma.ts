@@ -1,14 +1,17 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 
 // Prevent multiple instances in development due to hot reloading
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// Initialize PrismaClient
-// Prisma 7.x uses prisma.config.ts for configuration
+// Initialize PrismaClient with PostgreSQL adapter
 function createPrismaClient(): PrismaClient {
-  return new PrismaClient({});
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const adapter = new PrismaPg(pool);
+  return new PrismaClient({ adapter });
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
