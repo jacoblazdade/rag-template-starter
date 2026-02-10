@@ -9,9 +9,17 @@ import { ChunkingService } from '../services/chunking.js';
 const router: RouterType = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-const blobService = new BlobStorageService();
+// Lazy-load service that requires credentials
+let blobService: BlobStorageService | null = null;
 const parserService = new DocumentParserService();
 const chunkingService = new ChunkingService();
+
+function getBlobService(): BlobStorageService {
+  if (!blobService) {
+    blobService = new BlobStorageService();
+  }
+  return blobService;
+}
 
 interface DocumentUploadRequest extends Request {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,7 +50,7 @@ router.post('/', upload.single('file'), async (req: DocumentUploadRequest, res) 
     const documentId = randomUUID();
 
     // Upload to blob storage
-    const uploadResult = await blobService.uploadDocument(buffer, originalname);
+    const uploadResult = await getBlobService().uploadDocument(buffer, originalname);
 
     // Parse document
     const parseResult = await parserService.parseDocument(buffer);

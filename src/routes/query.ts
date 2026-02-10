@@ -4,8 +4,23 @@ import { AzureSearchService } from '../services/azureSearch.js';
 
 const router: RouterType = Router();
 
-const openaiService = new AzureOpenAIService();
-const searchService = new AzureSearchService();
+// Lazy-load services to handle missing credentials gracefully
+let openaiService: AzureOpenAIService | null = null;
+let searchService: AzureSearchService | null = null;
+
+function getOpenAIService(): AzureOpenAIService {
+  if (!openaiService) {
+    openaiService = new AzureOpenAIService();
+  }
+  return openaiService;
+}
+
+function getSearchService(): AzureSearchService {
+  if (!searchService) {
+    searchService = new AzureSearchService();
+  }
+  return searchService;
+}
 
 interface QueryRequest {
   query: string;
@@ -24,11 +39,11 @@ router.post('/', async (req, res) => {
     }
 
     // Generate embedding for the query
-    const { embedding: queryEmbedding } = await openaiService.embedText(query);
+    const { embedding: queryEmbedding } = await getOpenAIService().embedText(query);
 
     // Search for relevant chunks
     const searchFilter = documentId ? `documentId eq '${documentId}'` : undefined;
-    const searchResults = await searchService.search(queryEmbedding, query, {
+    const searchResults = await getSearchService().search(queryEmbedding, query, {
       top: topK,
       filter: searchFilter,
       hybridSearch: true,
@@ -55,7 +70,7 @@ router.post('/', async (req, res) => {
 If the context doesn't contain relevant information, say so. 
 Always cite your sources using the [N] notation.`;
 
-    const completion = await openaiService.generateCompletion(systemPrompt, query, context);
+    const completion = await getOpenAIService().generateCompletion(systemPrompt, query, context);
 
     res.json({
       success: true,
@@ -95,11 +110,11 @@ router.post('/stream', async (req, res) => {
     res.setHeader('Connection', 'keep-alive');
 
     // Generate embedding for the query
-    const { embedding: queryEmbedding } = await openaiService.embedText(query);
+    const { embedding: queryEmbedding } = await getOpenAIService().embedText(query);
 
     // Search for relevant chunks
     const searchFilter = documentId ? `documentId eq '${documentId}'` : undefined;
-    const searchResults = await searchService.search(queryEmbedding, query, {
+    const searchResults = await getSearchService().search(queryEmbedding, query, {
       top: topK,
       filter: searchFilter,
       hybridSearch: true,
@@ -125,7 +140,7 @@ router.post('/stream', async (req, res) => {
 If the context doesn't contain relevant information, say so. 
 Always cite your sources using the [N] notation.`;
 
-    const stream = openaiService.generateStreamingCompletion(systemPrompt, query, context);
+    const stream = getOpenAIService().generateStreamingCompletion(systemPrompt, query, context);
 
     for await (const chunk of stream) {
       res.write(`data: ${JSON.stringify({ type: 'answer', content: chunk })}\n\n`);
