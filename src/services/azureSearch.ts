@@ -189,6 +189,36 @@ export class AzureSearchService {
   }
 
   /**
+   * Get chunks by document ID
+   */
+  async getChunksByDocumentId(documentId: string): Promise<SearchResult[]> {
+    try {
+      const results = await this.searchClient.search('*', {
+        filter: `documentId eq '${documentId}'`,
+        select: ['id', 'documentId', 'text', 'pageNumber'],
+        orderBy: ['chunkIndex asc'],
+        top: 1000,
+      });
+
+      const chunks: SearchResult[] = [];
+      for await (const result of results.results) {
+        chunks.push({
+          id: result.document.id,
+          documentId: result.document.documentId,
+          text: result.document.text,
+          score: 1.0,
+          pageNumber: result.document.pageNumber,
+        });
+      }
+
+      return chunks;
+    } catch (error) {
+      console.error('Get chunks error:', error);
+      throw new Error('Failed to get document chunks');
+    }
+  }
+
+  /**
    * Delete document chunks by documentId
    */
   async deleteDocumentChunks(documentId: string): Promise<void> {

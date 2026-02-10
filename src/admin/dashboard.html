@@ -453,45 +453,46 @@
       renderDocuments();
       document.getElementById('selectedDocName').textContent = selectedDoc?.filename || 'Select a document';
       
-      // Load chunks (mock for now)
+      // Load real chunks from API
       const chunksEl = document.getElementById('chunksViewer');
       chunksEl.innerHTML = '<div class="empty-state"><div class="loader"></div><p>Loading chunks...</p></div>';
       
-      // Simulate chunks - in real implementation, fetch from API
-      setTimeout(() => {
-        chunksEl.innerHTML = `
+      try {
+        const res = await fetch(`/api/v1/admin/documents/${docId}/chunks`);
+        const data = await res.json();
+        
+        if (!data.success || !data.data.chunks.length) {
+          chunksEl.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">🧩</div>
+              <p>No chunks found. Document may still be processing.</p>
+            </div>
+          `;
+          return;
+        }
+        
+        const chunks = data.data.chunks;
+        chunksEl.innerHTML = chunks.map((chunk, index) => `
           <div class="chunk-card">
             <div class="chunk-header">
-              <span class="chunk-id">Chunk 1/3</span>
-              <span>~400 chars</span>
+              <span class="chunk-id">Chunk ${index + 1}/${chunks.length}</span>
+              <span>${chunk.text.length} chars</span>
             </div>
-            <div class="chunk-text">
-              This is a sample chunk from the document. In a real implementation, 
-              this would show the actual chunk text with overlap information.
-            </div>
+            <div class="chunk-text">${chunk.text}</div>
             <div class="chunk-meta">
-              <span>Page: 1</span>
-              <span>Score: 0.92</span>
+              ${chunk.pageNumber ? `<span>Page: ${chunk.pageNumber}</span>` : ''}
             </div>
-            <div class="embedding-viz"></div>
+            <div class="embedding-viz" title="Vector embedding (${chunk.id.split('-')[2] || 'embedding'}-${index})"></div>
           </div>
-          <div class="chunk-card">
-            <div class="chunk-header">
-              <span class="chunk-id">Chunk 2/3</span>
-              <span>~380 chars</span>
-            </div>
-            <div class="chunk-text">
-              Second chunk showing semantic overlap with the previous chunk. 
-              The overlap helps maintain context across chunk boundaries.
-            </div>
-            <div class="chunk-meta">
-              <span>Page: 1</span>
-              <span>Score: 0.88</span>
-            </div>
-            <div class="embedding-viz"></div>
+        `).join('');
+      } catch (e) {
+        chunksEl.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">❌</div>
+            <p>Failed to load chunks</p>
           </div>
         `;
-      }, 500);
+      }
     }
     
     async function testQuery() {

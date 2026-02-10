@@ -2,6 +2,7 @@ import { Router, type Router as RouterType } from 'express';
 import { readFile } from 'fs/promises';
 import { resolve } from 'path';
 import { documentStore } from '../services/documentStore.js';
+import { AzureSearchService } from '../services/azureSearch.js';
 
 const router: RouterType = Router();
 
@@ -43,12 +44,18 @@ router.get('/stats', async (_req, res) => {
 router.get('/documents/:documentId/chunks', async (req, res) => {
   try {
     const { documentId } = req.params;
-    // TODO: Get real chunks from database/Azure Search
+    const searchService = new AzureSearchService();
+    const chunks = await searchService.getChunksByDocumentId(documentId);
+    
     res.json({
       success: true,
       data: {
         documentId,
-        chunks: [],
+        chunks: chunks.map((c: { id: string; text: string; pageNumber?: number }) => ({
+          id: c.id,
+          text: c.text,
+          pageNumber: c.pageNumber,
+        })),
       },
     });
   } catch (error) {
