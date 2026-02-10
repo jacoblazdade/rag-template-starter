@@ -2,6 +2,7 @@ import { Queue, Worker, type Job } from 'bullmq';
 import { env } from '../config/env.js';
 import { AzureOpenAIService } from './azureOpenAI.js';
 import { AzureSearchService } from './azureSearch.js';
+import { documentStore } from './documentStore.js';
 import type { DocumentChunk } from './chunking.js';
 
 interface ProcessDocumentJob {
@@ -88,10 +89,18 @@ export function startDocumentWorker(): Worker | null {
 
     worker.on('completed', (job, result) => {
       console.log(`✅ Job ${job.id} completed:`, result);
+      // Update document status to indexed
+      const { documentId } = job.data as ProcessDocumentJob;
+      documentStore.update(documentId, { status: 'indexed' });
     });
 
     worker.on('failed', (job, err) => {
       console.error(`❌ Job ${job?.id} failed:`, err);
+      // Update document status to failed
+      if (job) {
+        const { documentId } = job.data as ProcessDocumentJob;
+        documentStore.update(documentId, { status: 'failed' });
+      }
     });
 
     console.log('📋 Document processing worker started');

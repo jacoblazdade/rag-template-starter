@@ -389,11 +389,14 @@
       try {
         const res = await fetch('/api/v1/admin/stats');
         const data = await res.json();
+        console.log('Stats response:', data);
         if (data.success) {
-          document.getElementById('totalDocs').textContent = data.data.totalDocuments;
-          document.getElementById('totalChunks').textContent = data.data.totalChunks;
-          document.getElementById('indexedDocs').textContent = data.data.indexedDocuments;
-          document.getElementById('avgChunks').textContent = data.data.avgChunksPerDoc;
+          document.getElementById('totalDocs').textContent = data.data.totalDocuments || 0;
+          document.getElementById('totalChunks').textContent = data.data.totalChunks || 0;
+          document.getElementById('indexedDocs').textContent = data.data.indexedDocuments || 0;
+          document.getElementById('avgChunks').textContent = data.data.avgChunksPerDoc || 0;
+        } else {
+          console.error('Stats error:', data.error);
         }
       } catch (e) {
         console.error('Failed to load stats:', e);
