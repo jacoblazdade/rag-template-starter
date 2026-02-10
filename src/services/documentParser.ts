@@ -2,14 +2,20 @@ import { DocumentAnalysisClient, AzureKeyCredential } from '@azure/ai-form-recog
 import { env } from '../config/env.js';
 
  
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PdfParseResult = { text: string; numpages: number; info?: { Title?: string; Author?: string; CreationDate?: string } };
 
 // Dynamic import for pdf-parse to handle ESM/CJS compatibility
 async function parsePdf(buffer: Buffer): Promise<PdfParseResult> {
+  // pdf-parse v2 exports PDFParse as named export
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pdfParseModule = await import('pdf-parse') as any;
-  const pdfParse = pdfParseModule.default || pdfParseModule;
-  return pdfParse(buffer) as Promise<PdfParseResult>;
+  const pdfParseModule: any = await import('pdf-parse');
+  // Get the PDFParse function (named export)
+  const PDFParse = pdfParseModule.PDFParse;
+  if (typeof PDFParse !== 'function') {
+    throw new Error('PDFParse is not a function. pdf-parse module structure: ' + JSON.stringify(Object.keys(pdfParseModule)));
+  }
+  return PDFParse(buffer) as Promise<PdfParseResult>;
 }
 
 export interface ParsedDocument {
