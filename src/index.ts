@@ -5,6 +5,7 @@ import { requestLogger } from './middleware/requestLogger.js';
 import { healthRouter } from './routes/health.js';
 import { documentsRouter } from './routes/documents.js';
 import { queryRouter } from './routes/query.js';
+import { adminRouter } from './routes/admin.js';
 import { env } from './config/env.js';
 import { startDocumentWorker } from './services/jobQueue.js';
 
@@ -18,6 +19,7 @@ app.use(requestLogger);
 app.use('/api/v1/health', healthRouter);
 app.use('/api/v1/documents', documentsRouter);
 app.use('/api/v1/query', queryRouter);
+app.use('/admin', adminRouter);
 
 // Error handling
 app.use(errorHandler);
