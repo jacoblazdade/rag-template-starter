@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   # Redis for BullMQ job queue
   redis:
@@ -9,6 +7,19 @@ services:
     volumes:
       - redis-data:/data
     command: redis-server --appendonly yes
+
+  # PostgreSQL database
+  postgres:
+    image: pgvector/pgvector:pg17
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: rag_template
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
 
   # API service (for production)
   api:
@@ -21,7 +32,9 @@ services:
       - .env
     depends_on:
       - redis
+      - postgres
     restart: unless-stopped
 
 volumes:
   redis-data:
+  postgres-data:
