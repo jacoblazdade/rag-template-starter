@@ -19,6 +19,7 @@ app.use(requestLogger);
 app.use('/api/v1/health', healthRouter);
 app.use('/api/v1/documents', documentsRouter);
 app.use('/api/v1/query', queryRouter);
+app.use('/api/v1/admin', adminRouter);
 app.use('/admin', adminRouter);
 
 // Error handling
