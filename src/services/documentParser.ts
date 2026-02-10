@@ -37,21 +37,31 @@ export class DocumentParserService {
   }
 
   async parseDocument(buffer: Buffer): Promise<ParsedDocument> {
-    // First, try native PDF parsing
-    const nativeResult = await this.tryNativeParse(buffer);
-    
-    // If we got substantial text, return it
-    if (nativeResult.text.trim().length > 200) {
+    try {
+      // First, try native PDF parsing
+      const nativeResult = await this.tryNativeParse(buffer);
+
+      // If we got substantial text, return it
+      if (nativeResult.text.trim().length > 200) {
+        return nativeResult;
+      }
+
+      // If minimal text and Azure OCR is available, fallback
+      if (this.azureClient) {
+        return this.tryAzureOCR(buffer);
+      }
+
+      // Return native result even if minimal
       return nativeResult;
+    } catch (error) {
+      // Native parsing failed, try Azure OCR if available
+      if (this.azureClient) {
+        console.log('Native parsing failed, falling back to Azure OCR...');
+        return this.tryAzureOCR(buffer);
+      }
+      // No Azure OCR configured, rethrow the error
+      throw error;
     }
-
-    // Otherwise, fallback to Azure OCR
-    if (this.azureClient) {
-      return this.tryAzureOCR(buffer);
-    }
-
-    // Return native result even if minimal
-    return nativeResult;
   }
 
   private async tryNativeParse(buffer: Buffer): Promise<ParsedDocument> {
