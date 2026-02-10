@@ -225,6 +225,19 @@ resource "azurerm_application_insights" "main" {
   resource_group_name = azurerm_resource_group.main.name
   application_type    = "Node.JS"
 
+  # Keep Application Insights bound to the Log Analytics workspace.
+  # Once a workspace_id is set, Azure does not allow removing it, only replacing
+  # the entire Application Insights resource. Re-adding it here prevents Terraform
+  # from attempting an unsupported removal on existing deployments.
+  workspace_id = azurerm_log_analytics_workspace.main.id
+
+  # Prevent accidental changes to workspace_id from forcing replacement
+  lifecycle {
+    ignore_changes = [
+      workspace_id,
+    ]
+  }
+
   tags = {
     Environment = var.environment
     Project     = "RAG Template"
