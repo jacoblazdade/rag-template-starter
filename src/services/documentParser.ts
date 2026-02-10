@@ -6,15 +6,16 @@ type PdfParseResult = { text: string; numpages: number; info?: { Title?: string;
 
 // Dynamic import for pdf-parse to handle ESM/CJS compatibility
 async function parsePdf(buffer: Buffer): Promise<PdfParseResult> {
-  // pdf-parse v2 exports PDFParse as named export
+  // pdf-parse v2 exports PDFParse as a class
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pdfParseModule: any = await import('pdf-parse');
-  // Get the PDFParse function (named export)
   const PDFParse = pdfParseModule.PDFParse;
   if (typeof PDFParse !== 'function') {
     throw new Error('PDFParse is not a function. pdf-parse module structure: ' + JSON.stringify(Object.keys(pdfParseModule)));
   }
-  return PDFParse(buffer) as Promise<PdfParseResult>;
+  // PDFParse is a class - instantiate with new
+  const parser = new PDFParse(buffer);
+  return parser as Promise<PdfParseResult>;
 }
 
 export interface ParsedDocument {
